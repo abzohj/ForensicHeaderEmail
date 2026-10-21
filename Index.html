@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Forensics Analyzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="scan-line"></div>
+<div class="noise"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-bracket">[</span>
+      <span class="logo-text">EMAIL<span class="accent">FORENSICS</span></span>
+      <span class="logo-bracket">]</span>
+    </div>
+    <div class="header-meta">
+      <span class="badge">KALI LINUX</span>
+      <span class="badge">v2.0</span>
+      <span id="clock" class="clock"></span>
+    </div>
+  </div>
+</header>
+
+<!-- UPLOAD ZONE -->
+<main>
+  <section class="upload-section">
+    <div class="terminal-window">
+      <div class="terminal-bar">
+        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+        <span class="terminal-title">forensics@kali:~$ ./analyze_header</span>
+      </div>
+      <div class="terminal-body">
+        <p class="prompt">$ Selecciona modo de entrada de cabecera:</p>
+
+        <div class="tab-bar">
+          <button class="tab active" data-tab="file">📁 Subir .txt</button>
+          <button class="tab" data-tab="paste">📋 Pegar texto</button>
+        </div>
+
+        <div id="tab-file" class="tab-content active">
+          <div class="drop-zone" id="dropZone">
+            <div class="drop-icon">⬡</div>
+            <p>Arrastra tu archivo <code>.txt</code> aquí</p>
+            <p class="sub">o haz clic para seleccionar</p>
+            <input type="file" id="fileInput" accept=".txt,.eml" hidden>
+            <div id="file-name" class="file-name"></div>
+          </div>
+        </div>
+
+        <div id="tab-paste" class="tab-content">
+          <textarea id="pasteArea" placeholder="Pega aquí la cabecera del correo..."></textarea>
+        </div>
+
+        <button id="analyzeBtn" class="btn-analyze">
+          <span class="btn-text">▶ INICIAR ANÁLISIS FORENSE</span>
+          <span class="btn-loader" hidden>⟳ Analizando...</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results" class="results hidden">
+
+    <!-- SPAM VERDICT -->
+    <div id="spam-banner" class="spam-banner"></div>
+
+    <!-- GRID BÁSICO -->
+    <div class="results-grid">
+
+      <div class="card" id="card-basic">
+        <div class="card-header"><span class="card-icon">✉</span> INFORMACIÓN BÁSICA</div>
+        <div class="card-body" id="basic-content"></div>
+      </div>
+
+      <div class="card" id="card-spam">
+        <div class="card-header"><span class="card-icon">⚠</span> ANÁLISIS SPAM / PHISHING</div>
+        <div class="card-body" id="spam-content"></div>
+      </div>
+
+      <div class="card full-width" id="card-mta">
+        <div class="card-header"><span class="card-icon">⇄</span> TRANSFERENCIA MTA GLOBAL</div>
+        <div class="card-body" id="mta-content"></div>
+      </div>
+
+      <div class="card full-width" id="card-hops">
+        <div class="card-header"><span class="card-icon">⬡</span> CADENA DE SALTOS MTA</div>
+        <div class="card-body" id="hops-content"></div>
+      </div>
+
+      <div class="card full-width" id="card-map">
+        <div class="card-header"><span class="card-icon">🌍</span> MAPA DE TRAYECTORIA</div>
+        <div class="card-body" id="map-content"></div>
+      </div>
+
+      <div class="card" id="card-times">
+        <div class="card-header"><span class="card-icon">⏱</span> TIEMPOS DE ENTREGA</div>
+        <div class="card-body" id="times-content"></div>
+      </div>
+
+      <div class="card" id="card-recipient">
+        <div class="card-header"><span class="card-icon">◎</span> IP DESTINATARIO</div>
+        <div class="card-body" id="recipient-content"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <div id="error-box" class="error-box hidden"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       HERRAMIENTA INDEPENDIENTE: GEOLOCALIZADOR DE IPs
+       ══════════════════════════════════════════════════════════ -->
+  <section class="geo-tool-section">
+    <div class="geo-tool-header">
+      <span class="geo-tool-title">
+        <span class="logo-bracket">[</span>
+        IP <span class="accent">GEOLOCATOR</span>
+        <span class="logo-bracket">]</span>
+      </span>
+      <span class="geo-tool-sub">Geolocaliza hasta 10 IPs y calcula distancias entre ellas</span>
+    </div>
+
+    <div class="terminal-window" style="max-width:100%">
+      <div class="terminal-bar">
+        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+        <span class="terminal-title">forensics@kali:~$ ./geoip --multi</span>
+      </div>
+      <div class="terminal-body">
+        <p class="prompt">$ Introduce las IPs a geolocalizar (una por línea):</p>
+
+        <div class="geo-input-grid">
+          <div class="geo-inputs" id="geoInputs">
+            <div class="geo-ip-row">
+              <span class="geo-ip-index">01</span>
+              <input class="geo-ip-input" type="text" placeholder="x.x.x.x" maxlength="45">
+              <button class="geo-ip-remove" title="Eliminar">✕</button>
+            </div>
+            <div class="geo-ip-row">
+              <span class="geo-ip-index">02</span>
+              <input class="geo-ip-input" type="text" placeholder="x.x.x.x" maxlength="45">
+              <button class="geo-ip-remove" title="Eliminar">✕</button>
+            </div>
+          </div>
+
+          <div class="geo-actions">
+            <button id="geoAddBtn" class="btn-secondary">+ Añadir IP</button>
+            <button id="geoLookupBtn" class="btn-analyze" style="flex:1">
+              <span class="btn-text">▶ GEOLOCALIZAR</span>
+              <span class="btn-loader" hidden>⟳ Consultando...</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GEO RESULTS -->
+    <div id="geo-results" class="hidden">
+      <div class="results-grid" style="margin-top:1.5rem">
+
+        <div class="card full-width">
+          <div class="card-header"><span class="card-icon">📍</span> RESULTADOS DE GEOLOCALIZACIÓN</div>
+          <div class="card-body" id="geo-cards-content"></div>
+        </div>
+
+        <div class="card full-width" id="geo-dist-card">
+          <div class="card-header"><span class="card-icon">📏</span> DISTANCIAS ENTRE IPs</div>
+          <div class="card-body" id="geo-dist-content"></div>
+        </div>
+
+        <div class="card full-width">
+          <div class="card-header"><span class="card-icon">🌍</span> MAPA DE IPs</div>
+          <div class="card-body" id="geo-map-content"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="geo-error-box" class="error-box hidden"></div>
+  </section>
+</main>
+
+<footer>
+  <span>Email Forensics Analyzer · Análisis Forense · 2024</span>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
